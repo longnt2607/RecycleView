@@ -10,6 +10,7 @@ import vn.edu.ntu.nguyentruonglong.model.Product;
 public class CartController extends Application implements ICartController {
 
     List<Product> productList = new ArrayList<>();
+    List<Product> shoppingCart = new ArrayList<>();
 
     public CartController() {
         productList.add(new Product("Khoai Lang Ninh Hoa", 12000, "Khoai lang cao to den hoi"));
@@ -22,5 +23,24 @@ public class CartController extends Application implements ICartController {
     @Override
     public List<Product> getAllProduct() {
         return productList;
+    }
+
+    @Override
+    public boolean addToCart(Product p) {
+        if (shoppingCart.contains(p)) {
+            return false;
+        }
+        shoppingCart.add(p);
+        return true;
+    }
+
+    @Override
+    public List<Product> getShoppingCart() {
+        return shoppingCart;
+    }
+
+    @Override
+    public void clearShoppingCart() {
+        shoppingCart.clear();
     }
 }

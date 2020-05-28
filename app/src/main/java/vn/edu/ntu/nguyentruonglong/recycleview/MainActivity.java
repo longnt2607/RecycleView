@@ -6,8 +6,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -26,16 +30,39 @@ public class MainActivity extends AppCompatActivity {
     private List<Product> productList;
     private RecyclerView recyclerView;
     private Adapter adapter;
+    private ICartController controller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         addControl();
-        //addEvent();
     }
 
-    private class ProductViewHolder extends RecyclerView.ViewHolder {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.mnu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.mnu_close: finish();
+            case R.id.mnu_cart: hienThiGioHang(); break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void hienThiGioHang() {
+        Intent intent = new Intent(this, ShoppingCartActivity.class);
+        startActivity(intent);
+    }
+
+    // ko viet cac phuong thuc cua MainActivity o duoi
+    private class ProductViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         TextView txtName, txtPrice, txtDecs;
         ImageView imvAddToCart;
@@ -47,6 +74,13 @@ public class MainActivity extends AppCompatActivity {
             txtPrice = this.itemView.findViewById(R.id.txtPrice);
             txtDecs = this.itemView.findViewById(R.id.txtDesc);
             imvAddToCart = this.itemView.findViewById(R.id.imvAddToCart);
+            imvAddToCart.setOnClickListener(this);
+            /*imvAddToCart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });*/
         }
 
         public void bind(Product p) {
@@ -54,6 +88,16 @@ public class MainActivity extends AppCompatActivity {
             txtName.setText(p.getName());
             txtPrice.setText(new Integer(p.getPrice()).toString());
             txtDecs.setText(p.getDesc());
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (controller.addToCart(product)) {
+                Toast.makeText(MainActivity.this, "Da them: " + product.getName() + " vao gio hang.", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(MainActivity.this, "Da co: " + product.getName() + " trong gio hang.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -76,13 +120,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull final ProductViewHolder holder, int position) { //position la vi tri cua product trong adapter
             holder.bind(productList.get(position));
-
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(getApplicationContext(), holder.toString(), Toast.LENGTH_LONG);
-                }
-            });
         }
 
         @Override
@@ -94,18 +131,12 @@ public class MainActivity extends AppCompatActivity {
     private void addControl() {
         recyclerView = findViewById(R.id.rvMatHang);
         productList = new ArrayList<>();
-        ICartController controller = (ICartController) getApplication();
+        controller = (ICartController) getApplication();
         productList = controller.getAllProduct();
         adapter = new Adapter(productList);
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
-    }
-
-    private void addEvent() {
-        CartController cartController = new CartController();
-        productList = cartController.getAllProduct();
-        adapter.notifyDataSetChanged();
     }
 }
